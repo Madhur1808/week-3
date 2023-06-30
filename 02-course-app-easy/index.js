@@ -121,10 +121,7 @@ app.post("/users/login", userAuthentication, (req, res) => {
 
 app.get("/users/courses", userAuthentication, (req, res) => {
   // logic to list all courses
-  let publishedCourse = [];
-  COURSES.map((course) => {
-    if (course.published) publishedCourse.push(course);
-  });
+  const publishedCourse = COURSES.filter((course) => course.published == true);
 
   res.send({ courses: publishedCourse });
 });
