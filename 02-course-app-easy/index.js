@@ -34,7 +34,7 @@ const userAuthentication = (req, res, next) => {
   );
 
   if (foundUser) {
-    req.user = userfound;
+    req.user = foundUser;
     next();
   } else {
     res.send({ message: "User authentication failed" });
@@ -101,65 +101,56 @@ app.post("/users/signup", (req, res) => {
     id: userCounter++,
     username,
     password,
+    purchasedCourses: [],
   };
-  USERS.push(newUser);
-  res.send({ message: "user created successfully" });
+
+  const alreadyUser = USERS.find((user) => user.username === username);
+
+  if (!alreadyUser) {
+    USERS.push(newUser);
+    res.send({ message: "user created successfully" });
+  } else {
+    res.send({ message: "already a user" });
+  }
 });
 
-app.post("/users/login", (req, res) => {
+app.post("/users/login", userAuthentication, (req, res) => {
   // logic to log in user
-  const { username, password } = req.headers;
-
-  const foundUser = USERS.find(
-    (user) => user.username === username && user.password === password
-  );
-
-  if (foundUser) res.send({ message: "Logged in successfully" });
-  else res.status(404).send({ message: "user not found" });
+  res.send({ message: "Logged in successfully" });
 });
 
-app.get("/users/courses", (req, res) => {
+app.get("/users/courses", userAuthentication, (req, res) => {
   // logic to list all courses
-  const { username, password } = req.headers;
-  const foundUser = USERS.find(
-    (user) => user.username === username && user.password === password
-  );
+  let publishedCourse = [];
+  COURSES.map((course) => {
+    if (course.published) publishedCourse.push(course);
+  });
 
-  if (foundUser) res.send({ courses: COURSES });
-  else req.send({ message: "user not found" });
+  res.send({ courses: publishedCourse });
 });
 
-app.post("/users/courses/:courseId", (req, res) => {
+app.post("/users/courses/:courseId", userAuthentication, (req, res) => {
   // logic to purchase a course
   const id = parseInt(req.params.courseId);
-  const userfound = USERS.find(
-    (user) => user.username === username && user.password === password
+
+  const coursefound = COURSES.find(
+    (course) => course.id == id && course.published
   );
 
-  const coursefound = COURSES.find((course) => course.id == id);
-
-  if (userfound && coursefound) {
-    const coursePurchased = { ...coursefound, id: purchasedId++ };
-    purchasedCOURSES.push(coursePurchased);
+  if (coursefound) {
+    req.user.purchasedCourses.push(id);
     res.send({ message: "Course purchased successfully" });
-  }
-  if (!coursefound) {
-    res.send({ message: "no course found" });
-  }
-  if (!userfound) {
-    res.send({ message: "no user found" });
+  } else {
+    res.send({ message: "Course not found" });
   }
 });
 
-app.get("/users/purchasedCourses", (req, res) => {
+app.get("/users/purchasedCourses", userAuthentication, (req, res) => {
   // logic to view purchased courses
-  const { username, password } = req.headers;
-
-  const userfound = USERS.find(
-    (user) => user.username === username && user.password === password
+  const purchasedCourses = COURSES.filter((course) =>
+    req.user.purchasedCourses.includes(course.id)
   );
-  if (userfound) res.send({ purchasedCourses: purchasedCOURSES });
-  else res.send({ message: "User not found" });
+  res.send({ purchasedCourses: purchasedCourses });
 });
 
 app.listen(3000, () => {
