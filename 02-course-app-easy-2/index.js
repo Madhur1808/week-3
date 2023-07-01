@@ -1,6 +1,9 @@
 const express = require("express");
 const app = express();
 const jwt = require("jsonwebtoken");
+const dotenv = require("dotenv");
+
+dotenv.config();
 app.use(express.json());
 
 let ADMINS = [];
@@ -12,7 +15,7 @@ let adminCounter = 0;
 let userCounter = 0;
 
 //Authentication
-const secretKey = "thisisasecretkey";
+const secretKey = process.env.SECRET_KEY;
 const generatejwt = (admin) => {
   const payload = { username: admin.username };
   return jwt.sign(payload, secretKey, { expiresIn: "1h" });
@@ -43,7 +46,7 @@ app.post("/admin/signup", (req, res) => {
   const newAdmin = { ...req.body, id: adminCounter++ };
 
   const foundAdmin = ADMINS.find(
-    (admin) => adminusername === username && password === admin.password
+    (admin) => admin.username === username && password === admin.password
   );
   if (foundAdmin) res.send({ message: "admin already exists" });
   else {
