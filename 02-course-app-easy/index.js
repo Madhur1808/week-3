@@ -9,10 +9,8 @@ let ADMINS = [];
 let USERS = [];
 let COURSES = [];
 
-let purchasedCOURSES = [];
 let adminCounter = 0;
 let userCounter = 0;
-let purchasedId = 0;
 
 //middlewares for authentication
 const adminAuthentication = (req, res, next) => {
@@ -128,6 +126,7 @@ app.get("/users/courses", userAuthentication, (req, res) => {
 
 app.post("/users/courses/:courseId", userAuthentication, (req, res) => {
   // logic to purchase a course
+
   const id = parseInt(req.params.courseId);
 
   const coursefound = COURSES.find(
